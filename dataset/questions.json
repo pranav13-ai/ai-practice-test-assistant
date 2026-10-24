@@ -1,0 +1,122 @@
+[
+  {
+    "question": "What is Amazon S3?",
+    "answer": "Amazon S3 is an object storage service that offers scalability, data availability, security, and performance."
+  },
+  {
+    "question": "What is AWS Lambda?",
+    "answer": "AWS Lambda is a serverless compute service that runs code in response to events without managing servers."
+  },
+  {
+    "question": "What is Amazon DynamoDB?",
+    "answer": "Amazon DynamoDB is a fully managed NoSQL database service that provides fast and predictable performance with seamless scalability."
+  },
+  {
+    "question": "What is Amazon API Gateway?",
+    "answer": "Amazon API Gateway is a fully managed service that makes it easy to create, publish, maintain, monitor, and secure APIs."
+  },
+  {
+    "question": "What is Amazon Bedrock?",
+    "answer": "Amazon Bedrock is a fully managed service that offers foundation models from leading AI companies through a single API."
+  },
+  {
+    "question": "What is a Knowledge Base in Amazon Bedrock?",
+    "answer": "A Knowledge Base in Amazon Bedrock allows you to connect foundation models to your data sources for retrieval-augmented generation."
+  },
+  {
+    "question": "What is serverless architecture?",
+    "answer": "Serverless architecture allows developers to build and run applications without managing servers, with the cloud provider handling infrastructure automatically."
+  },
+  {
+    "question": "What is RAG?",
+    "answer": "RAG stands for Retrieval-Augmented Generation. It combines information retrieval with AI text generation to produce accurate, context-aware answers."
+  },
+  {
+    "question": "What is semantic search?",
+    "answer": "Semantic search understands the intent and contextual meaning of a query rather than just matching keywords, providing more relevant results."
+  },
+  {
+    "question": "What is caching in DynamoDB?",
+    "answer": "Caching in DynamoDB means storing previously computed query results so repeated questions can be answered instantly without calling the AI model again."
+  },
+  {
+    "question": "What is Amazon EC2?",
+    "answer": "Amazon EC2 is a web service that provides resizable compute capacity in the cloud, allowing you to run virtual servers on demand."
+  },
+  {
+    "question": "What is Amazon VPC?",
+    "answer": "Amazon VPC is a virtual private cloud that lets you launch AWS resources in a logically isolated network that you define."
+  },
+  {
+    "question": "What is Amazon CloudWatch?",
+    "answer": "Amazon CloudWatch is a monitoring and observability service that collects metrics, logs, and events from AWS resources and applications."
+  },
+  {
+    "question": "What is AWS IAM?",
+    "answer": "AWS IAM stands for Identity and Access Management. It lets you securely control access to AWS services and resources for users and roles."
+  },
+  {
+    "question": "What is Amazon RDS?",
+    "answer": "Amazon RDS is a managed relational database service that supports MySQL, PostgreSQL, Oracle, SQL Server, and Amazon Aurora."
+  },
+  {
+    "question": "What is Amazon CloudFront?",
+    "answer": "Amazon CloudFront is a content delivery network that delivers data, videos, applications, and APIs globally with low latency."
+  },
+  {
+    "question": "What is AWS CloudFormation?",
+    "answer": "AWS CloudFormation is an infrastructure-as-code service that lets you model and provision AWS resources using templates."
+  },
+  {
+    "question": "What is Amazon SNS?",
+    "answer": "Amazon SNS is a fully managed pub/sub messaging service that lets you send notifications to subscribers via email, SMS, or HTTP endpoints."
+  },
+  {
+    "question": "What is Amazon SQS?",
+    "answer": "Amazon SQS is a fully managed message queuing service that lets you decouple and scale microservices, distributed systems, and serverless apps."
+  },
+  {
+    "question": "What is AWS Elastic Beanstalk?",
+    "answer": "AWS Elastic Beanstalk is a platform-as-a-service that automatically handles deployment, load balancing, scaling, and monitoring of your application."
+  },
+  {
+    "question": "What is Amazon ECS?",
+    "answer": "Amazon ECS is a fully managed container orchestration service that helps you run and scale containerized applications using Docker."
+  },
+  {
+    "question": "What is Amazon EKS?",
+    "answer": "Amazon EKS is a managed Kubernetes service that makes it easy to run Kubernetes on AWS without needing to install or operate your own control plane."
+  },
+  {
+    "question": "What is AWS Step Functions?",
+    "answer": "AWS Step Functions is a serverless orchestration service that lets you coordinate multiple AWS services into workflows using visual state machines."
+  },
+  {
+    "question": "What is Amazon Cognito?",
+    "answer": "Amazon Cognito provides user authentication, authorization, and user management for web and mobile apps, including sign-up and sign-in functionality."
+  },
+  {
+    "question": "What is AWS CodePipeline?",
+    "answer": "AWS CodePipeline is a fully managed CI/CD service that automates the build, test, and deploy phases of your application release process."
+  },
+  {
+    "question": "What is Amazon OpenSearch Service?",
+    "answer": "Amazon OpenSearch Service is a managed service for deploying, operating, and scaling OpenSearch clusters for log analytics and full-text search."
+  },
+  {
+    "question": "What is AWS Glue?",
+    "answer": "AWS Glue is a serverless data integration service that makes it easy to discover, prepare, and combine data for analytics and machine learning."
+  },
+  {
+    "question": "What is Amazon Athena?",
+    "answer": "Amazon Athena is an interactive query service that lets you analyze data directly in Amazon S3 using standard SQL without managing infrastructure."
+  },
+  {
+    "question": "What is AWS Systems Manager?",
+    "answer": "AWS Systems Manager gives you visibility and control of your AWS infrastructure, allowing you to automate operational tasks across resources."
+  },
+  {
+    "question": "What is Amazon Route 53?",
+    "answer": "Amazon Route 53 is a scalable and highly available Domain Name System web service that routes end users to internet applications."
+  }
+]
