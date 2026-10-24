@@ -1,0 +1,325 @@
+================================================================
+AI-POWERED PRACTICE TEST ASSISTANT - COMPLETE SETUP GUIDE
+Built with AWS Bedrock, Lambda, DynamoDB, API Gateway, Streamlit
+================================================================
+
+PREREQUISITES
+-------------
+1. AWS Account (Free Tier)
+2. Python 3.x installed on your computer
+3. VS Code or any text editor
+4. GitHub account
+
+================================================================
+STEP 1 - ENABLE BEDROCK ACCESS
+================================================================
+1. Login to AWS Console at console.aws.amazon.com
+2. Make sure region is set to US East (N. Virginia) us-east-1
+3. Search "Bedrock" in the search bar and open it
+4. Go to Model catalog on the left sidebar
+5. Click on "Submit use case details" if banner appears
+   - Company: Your university name
+   - Industry: Education
+   - Users: Internal users
+   - Description: Building AI practice test assistant for students
+6. Submit and wait for approval (usually instant)
+
+================================================================
+STEP 2 - CREATE S3 BUCKET AND UPLOAD DATASET
+================================================================
+1. Search "S3" in AWS Console and open it
+2. Click "Create bucket"
+3. Bucket name: ai-practice-test-assistant-yourname
+   (must be globally unique)
+4. Region: us-east-1
+5. Leave everything else as default
+6. Click "Create bucket"
+
+7. Create a file called questions.json on your computer
+   with this structure:
+   [
+     {
+       "question": "What is Amazon S3?",
+       "answer": "Amazon S3 is an object storage service..."
+     }
+   ]
+
+8. Open your bucket
+9. Click "Upload" -> "Add files" -> select questions.json
+10. Click "Upload"
+
+================================================================
+STEP 3 - CREATE BEDROCK KNOWLEDGE BASE
+================================================================
+1. Go to Bedrock console
+2. Left sidebar -> Knowledge Bases (KB) under Build section
+3. Click dropdown arrow next to "Create Managed KB"
+4. Fill in:
+   - KB name: pt-assistant-kb
+   - Data source name: pt-assistant-datasource
+   - Data source type: Amazon S3 (already selected)
+   - S3 URI: Click "Browse S3" -> select your bucket
+              -> select questions.json -> Choose
+5. Leave everything else as default
+6. Click "Create Knowledge Base"
+7. Wait 3-5 minutes until status shows "Available"
+8. Note down the Knowledge Base ID (looks like: XXXXXXXXXX)
+   You will need this for Lambda
+
+================================================================
+STEP 4 - CREATE DYNAMODB TABLE
+================================================================
+1. Search "DynamoDB" in AWS Console and open it
+2. Click "Create table"
+3. Table name: PTAssistantCache
+4. Partition key: query_id -> type: String
+5. Leave everything else as default
+6. Click "Create table"
+7. Wait until status shows "Active"
+
+================================================================
+STEP 5 - CREATE LAMBDA FUNCTION
+================================================================
+1. Search "Lambda" in AWS Console and open it
+2. Click "Create function"
+3. Select "Author from scratch"
+4. Function name: pt-assistant-function
+5. Runtime: Python 3.12
+6. Under Additional settings -> turn OFF ARM64 architecture
+   (so it uses x86_64 default)
+7. Click "Create Event Function"
+
+8. On the function page, scroll to "Code source"
+9. Delete all existing code
+10. Paste the following code:
+
+---LAMBDA CODE START---
+import json
+import boto3
+import hashlib
+
+dynamodb = boto3.resource('dynamodb')
+bedrock = boto3.client('bedrock-runtime', region_name='us-east-1')
+
+TABLE_NAME = 'PTAssistantCache'
+table = dynamodb.Table(TABLE_NAME)
+
+def lambda_handler(event, context):
+    try:
+        body = json.loads(event.get('body', '{}'))
+        question = body.get('question', '').strip()
+
+        if not question:
+            return response(400, {'error': 'No question provided'})
+
+        cache_key = hashlib.md5(question.lower().encode()).hexdigest()
+        cached = table.get_item(Key={'query_id': cache_key}).get('Item')
+        if cached:
+            return response(200, {'answer': cached['answer'], 'source': 'cache'})
+
+        claude_response = bedrock.invoke_model(
+            modelId='YOUR_INFERENCE_PROFILE_ARN_HERE',
+            body=json.dumps({
+                'anthropic_version': 'bedrock-2023-05-31',
+                'max_tokens': 500,
+                'messages': [{'role': 'user', 'content': question}]
+            })
+        )
+
+        answer = json.loads(claude_response['body'].read())['content'][0]['text']
+
+        table.put_item(Item={
+            'query_id': cache_key,
+            'question': question,
+            'answer': answer
+        })
+
+        return response(200, {'answer': answer, 'source': 'bedrock'})
+
+    except Exception as e:
+        return response(500, {'error': str(e)})
+
+def response(status_code, body):
+    return {
+        'statusCode': status_code,
+        'headers': {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+        },
+        'body': json.dumps(body)
+    }
+---LAMBDA CODE END---
+
+HOW TO GET YOUR INFERENCE PROFILE ARN:
+- Go to Bedrock -> Model catalog
+- Click on Claude Haiku 4.5
+- Click "Open in playground"
+- Click the 3 dots menu -> "View API request"
+- Copy the --model-id value
+- Replace YOUR_INFERENCE_PROFILE_ARN_HERE with that value
+
+11. Click "Deploy" button
+12. Wait for "Successfully updated" message
+
+================================================================
+STEP 6 - ADD PERMISSIONS TO LAMBDA
+================================================================
+1. On Lambda function page, click "Configuration" tab
+2. Click "Permissions" on the left
+3. Click on the Role name link (opens IAM in new tab)
+4. Click "Add permissions" -> "Attach policies"
+5. Search and add these 3 policies:
+   - AmazonDynamoDBFullAccess
+   - AmazonBedrockFullAccess
+   - AmazonS3ReadOnlyAccess
+6. Click "Add permissions"
+
+INCREASE LAMBDA TIMEOUT:
+1. Click "Configuration" tab -> "General configuration"
+2. Click "Edit"
+3. Change Timeout from 3 sec to 30 seconds
+4. Click "Save"
+
+================================================================
+STEP 7 - CREATE API GATEWAY
+================================================================
+1. Search "API Gateway" in AWS Console and open it
+2. Click "Create API"
+3. Under HTTP API -> click "Build"
+4. API name: pt-assistant-api
+5. Click "Add integration"
+   - Type: Lambda
+   - Function: pt-assistant-function
+6. Click "Next"
+7. Configure routes:
+   - Method: POST
+   - Resource path: /ask
+   - Integration target: pt-assistant-function
+8. Click "Next" -> "Next" -> "Create"
+9. Go to Stages -> $default
+10. Copy the Invoke URL
+    (looks like: https://xxxxxxxxxx.execute-api.us-east-1.amazonaws.com)
+
+Your full API endpoint is: INVOKE_URL/ask
+
+================================================================
+STEP 8 - TEST THE API
+================================================================
+Open Terminal (Mac) or Command Prompt (Windows) and run:
+
+curl -X POST YOUR_INVOKE_URL/ask \
+-H "Content-Type: application/json" \
+-d '{"question": "What is Amazon S3?"}'
+
+You should get a JSON response with an answer field.
+
+================================================================
+STEP 9 - RUN STREAMLIT FRONTEND
+================================================================
+1. Install dependencies:
+   pip install streamlit requests
+
+2. Create a file called app.py with this code:
+
+---APP CODE START---
+import streamlit as st
+import requests
+
+API_URL = "YOUR_INVOKE_URL/ask"
+
+st.set_page_config(page_title="AI Practice Test Assistant", page_icon="🤖")
+st.title("🤖 AI Practice Test Assistant")
+st.markdown("Ask any AWS-related question and get an instant AI-powered answer.")
+
+question = st.text_input("Enter your question:")
+
+if st.button("Get Answer") and question:
+    with st.spinner("Thinking..."):
+        res = requests.post(API_URL, json={"question": question})
+        if res.status_code == 200:
+            data = res.json()
+            st.success(data['answer'])
+            st.caption(f"Source: {data['source']}")
+        else:
+            st.error("Something went wrong.")
+---APP CODE END---
+
+3. Replace YOUR_INVOKE_URL with your actual API Gateway URL
+4. Run the app:
+   streamlit run app.py
+
+5. App opens at localhost:8501 in your browser
+6. Type any AWS question and click "Get Answer"
+
+================================================================
+ARCHITECTURE OVERVIEW
+================================================================
+User
+  |
+  v
+Streamlit App (localhost:8501)
+  |
+  v
+API Gateway (POST /ask)
+  |
+  v
+AWS Lambda (pt-assistant-function)
+  |
+  |---> DynamoDB (check cache first)
+  |       |
+  |       |-- If cached: return answer immediately
+  |
+  |---> Amazon Bedrock (Claude Haiku 4.5)
+          |
+          --> Generate answer
+          --> Store in DynamoDB cache
+          --> Return answer to user
+
+================================================================
+COMMON ERRORS AND FIXES
+================================================================
+
+ERROR: "This model version has reached end of its life"
+FIX: Use the inference profile ARN from Bedrock playground
+     View API request to get the correct ARN
+
+ERROR: "Model not available for this account"
+FIX: Submit use case details in Bedrock console first
+
+ERROR: Lambda timeout
+FIX: Increase Lambda timeout to 30 seconds in
+     Configuration -> General configuration
+
+ERROR: AccessDeniedException
+FIX: Make sure all 3 IAM policies are attached to Lambda role
+
+ERROR: Internal Server Error
+FIX: Check CloudWatch logs:
+     Lambda -> Monitor -> View CloudWatch logs -> latest stream
+
+================================================================
+SERVICES COST ESTIMATE (1-day usage)
+================================================================
+S3:          Free (within free tier)
+DynamoDB:    Free (within free tier)
+Lambda:      Free (within free tier)
+API Gateway: Free (within free tier)
+Bedrock:     ~$0.50 - $2.00 depending on usage
+
+IMPORTANT: Delete all resources after the hackathon to avoid charges
+- Delete Bedrock Knowledge Base
+- Delete OpenSearch collection if created
+- Delete S3 bucket contents
+- Delete DynamoDB table
+- Delete Lambda function
+- Delete API Gateway
+
+================================================================
+GITHUB REPO
+================================================================
+https://github.com/pranav13-ai/ai-practice-test-assistant
+
+Fork this repo and follow the setup guide above.
+Replace the API URL in streamlit_app/app.py with your own.
+
+================================================================
